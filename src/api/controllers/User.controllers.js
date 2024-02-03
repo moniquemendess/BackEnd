@@ -7,12 +7,13 @@ const User = require("../models/User.model");
 //! ---------------------------- utils ----------------------------------
 const randomCode = require("../../utils/randomCode");
 const sendEmail = require("../../utils/sendEmail");
-
+const { generateToken } = require("../../utils/token");
 //! ------------------------------librerias--------------------------------
 const nodemailer = require("nodemailer");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
 const dotenv = require("dotenv");
+dotenv.config();
 const {
   setTestEmailSend,
   getTestEmailSend,
@@ -177,10 +178,9 @@ const registerWithRedirect = async (req, res, next) => {
   try {
     await User.syncIndexes();
     let confirmationCode = randomCode();
-    const userExist = await User.findOne(
-      { email: req.body.email },
-      { name: req.body.name }
-    );
+    const { email, name } = req.body;
+
+    const userExist = await User.findOne({ email: email }, { name: name });
     if (!userExist) {
       const newUser = new User({ ...req.body, confirmationCode });
       if (req.file) {
@@ -267,4 +267,42 @@ const sendCode = async (req, res, next) => {
   }
 };
 
-module.exports = { registerLargo, register, sendCode, registerWithRedirect };
+//----------------------------------------------------------------------------------------------------
+//! ---------------------------------LOGIN------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
+//! Function de login
+const login = async (req, res, next) => {
+  try {
+    //! nos traemos
+    const { email, password } = req.body;
+    const userDB = await User.findOne({ email }); // buscar usuario con el email
+
+    if (userDB) {
+      // comparamos la contraseña del body con la del user de la DB
+      if (bcrypt.compareSync(password, userDB.password)) {
+        // si coinciden generamos el token
+        const token = generateToken(userDB._id, email);
+        // mandamos la respuesta con el token
+        return res.status(200).json({
+          user: userDB,
+          token,
+        });
+      } else {
+        return res.status(404).json("password dont match");
+      }
+    } else {
+      // si no tenemos el usuario el la base de datos
+      return res.status(404).json("User no register");
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports = {
+  registerLargo,
+  register,
+  sendCode,
+  registerWithRedirect,
+  login,
+};

@@ -13,12 +13,12 @@ const { setTestEmailSend } = require("../state/state.data");
 // inicio
 const sendEmail = (userEmail, name, confirmationCode) => {
   /**^reseteo el estado a false ---> es el estado inicial */
-  //! [PRIMERO 01] ------- TRAEMOS EL EMAIL Y PASSWORD
+  //! [PASO 01] ------- TRAEMOS EL EMAIL Y PASSWORD
   setTestEmailSend(false);
   const email = process.env.EMAIL; // VARIABLE DEL ENTORNO
   const password = process.env.PASSWORD; // VARIABLE DEL ENTORNO
 
-  //! [PRIMERO 02] ------- HACEMOS EL TRANSPORTE
+  //! [PASO 02] ------- HACEMOS EL TRANSPORTE
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -26,7 +26,7 @@ const sendEmail = (userEmail, name, confirmationCode) => {
       pass: password,
     },
   });
-  //! [PRIMERO 03] ------- CREAMOS LAS OPCIONES DEL EMAIL
+  //! [PASO 03] ------- CREAMOS LAS OPCIONES DEL EMAIL
   const mailOptions = {
     from: email,
     to: userEmail,
@@ -34,7 +34,7 @@ const sendEmail = (userEmail, name, confirmationCode) => {
     text: `tu codigo es ${confirmationCode}, gracias por confiar en nosotros ${name}`,
   };
 
-  //! [PRIMERO 04] ------- HACIEMOS EL TRANSPORTE DEL sendMail
+  //! [PASO 04] ------- HACIEMOS EL TRANSPORTE DEL sendMail
   transporter.sendMail(mailOptions, function (error, info) {
     //! VAMOS SETEAR EL ESTADO DEL TEST SI HAY UN ERROR, VAMOS DECIR QUE NO HEMOS ENVIADO EL EMAIL
     if (error) {
@@ -48,5 +48,5 @@ const sendEmail = (userEmail, name, confirmationCode) => {
   });
 };
 
-//! [PRIMERO 05] ------- EXPORTAR
+//! [PASO 05] ------- EXPORTAR
 module.exports = sendEmail;
